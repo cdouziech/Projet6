@@ -116,13 +116,11 @@ export async function rateBook(id, userId, rating) {
 export async function addBook(data) {
   const userId = localStorage.getItem('userId');
   const book = {
-    userId,
     title: data.title,
     author: data.author,
     year: data.year,
     genre: data.genre,
     ratings: [{
-      userId,
       grade: data.rating ? parseInt(data.rating, 10) : 0,
     }],
     averageRating: parseInt(data.rating, 10),
