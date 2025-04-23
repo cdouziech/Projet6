@@ -2,9 +2,6 @@ Book = require('../models/Book');
 const fs = require('fs');
 
 exports.createBook = (req, res, next) => {
-  console.log('req.body:', req.body);
-  console.log('req.body.book:', req.body.book);
-  console.log('req.file:', req.file);
   if (!req.body.book) {
     return res.status(400).json({ message: 'Missing book data' });
   }
@@ -39,17 +36,13 @@ exports.createBook = (req, res, next) => {
     userId: req.auth.userId,
     imageUrl,
     ratings: ratingsWithUser,
-    averageRating: ratingsWithUser.length
-      ? ratingsWithUser.reduce((sum, r) => sum + r.grade, 0) / ratingsWithUser.length
-      : 0
+    averageRating: 0
   });
 
   book.save()
     .then(() => res.status(201).json({ message: 'Livre enregistré !' }))
     .catch((error) => res.status(400).json({ error }));
 };
-
-
 
 exports.getAllBooks = (req, res, next)=> {
   Book.find()
@@ -65,6 +58,8 @@ exports.getOneBook = (req, res, next)=> {
 
 exports.getBestRatedBooks = (req, res, next)=> {
   Book.find()
+  .sort({ averageRating: -1 })
+  .limit(3)
   .then((books) => {res.status(200).json(books)})
   .catch((error)=> {res.status(400).json({error})})
 };
@@ -109,7 +104,11 @@ exports.deleteOneBook = (req, res, next)=> {
   });
 };
 
-exports.rankOneBook = (req, res, next)=> {};
+exports.rankOneBook = (req, res, next)=> {
+  Book.findOne({ _id: req.params.id})
+  .then()
+  .catch(error => res.status(401).json({error}));
+};
 
 
 

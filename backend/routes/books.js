@@ -8,8 +8,8 @@ const booksCtrl = require('../controllers/books');
 
 // read
 router.get('/', booksCtrl.getAllBooks);
-router.get('/:id', booksCtrl.getOneBook);
 router.get('/bestrating', booksCtrl.getBestRatedBooks);
+router.get('/:id', booksCtrl.getOneBook);
 // update
 router.put('/:id', auth, multer, booksCtrl.updateOneBook);
 // create
