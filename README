@@ -1,3 +1,12 @@
-Pour faire fonctionner le projet, veuillez installer npm dans le frontend
-à l'aide de la commande "npm install". 
-Installez ensuite 
+Pour faire fonctionner le projet, veuillez installer npm dans le
+frontend ET dans le backend à l'aide de la commande "npm install".
+
+
+Activez le backend avec "nodemon server.js"
+Lancez ensuite l'application front avec "npm start"
+Il est possible que le port 3000 déjà utilisé par le backend donc
+n'hésitez pas à confirmer la demande d'utiliser un autre port.
+
+
+
+
