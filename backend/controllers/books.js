@@ -9,7 +9,7 @@ const calculateAverageRating = (ratings) => {
   for(let i=0; i<len ; i++){
     sum += ratings[i].grade;
   };
-  return (sum/len); // fonction de moyenne classique
+  return (sum/len).toFixed(1); // fonction de moyenne classique
 };
 
 exports.createBook = async (req, res, next) => {
@@ -35,7 +35,7 @@ exports.createBook = async (req, res, next) => {
   //gestion de l'erreur en cas de manquement d'une donnée
 
   const originalImgBuffer = req.file.buffer
-  const imgFilename = Date.now() + req.file.originalname +".webp";
+  const imgFilename = Date.now() + req.file.originalname.split(".")[0] +".webp";
   const imgPath = path.join('images', imgFilename);
   await sharp(originalImgBuffer)
     .resize({ width: 520 })
