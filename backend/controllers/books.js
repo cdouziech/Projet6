@@ -92,34 +92,63 @@ exports.getBestRatedBooks = (req, res, next)=> {
   // puis affiche seulement les 3 premiers
 };
 
-exports.updateOneBook = (req, res, next) => {
+exports.updateOneBook = async (req, res, next) => {
+  const hasNewImage = req.file != undefined;
 
-  const bookObject = req.file ? {
-    ...JSON.parse(req.body.book),
-    image: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-  } : { ...req.body };
-  // on regarde si l'utilisateur change l'image car la requête sera traité différement
-  // en fonction de ça
+  let newBookData;
+  try {
+    newBookData = hasNewImage ? JSON.parse(req.body.book) : req.body;
+  } catch (err) {
+    return res.status(400).json({ message: 'invalid JSON' });
+  }
+  // récupère les nouvelles données selon la présence d'une image
 
-  delete bookObject.userId;
-  // on a pas besoin du userId car l'objet est déjà créé
+  try {
+    const book = await Book.findOne({ _id: req.params.id });
 
-  Book.findOne({_id: req.params.id})
-      .then((book) => {
-          if (book.userId != req.auth.userId) {
-              res.status(403).json({ message : 'unauthorized request'});
-              // on regarde si l'user en question est bien le créateur du livre
-          } else {
-              Book.updateOne({ _id: req.params.id}, { ...bookObject, _id: req.params.id})
-              .then(() => res.status(200).json({message : 'Objet modifié!'}))
-              .catch(error => res.status(401).json({ error }));
-              // on modifie l'objet avec les modifications nécessaires
-          }
-      })
-      .catch((error) => {
-          res.status(400).json({ error });
+    if (book.userId !== req.auth.userId) {
+      return res.status(403).json({ message: 'unauthorized request' });
+    }
+    // vérifie que l'utilisateur est bien le créateur du livre
+
+    let imageUrl = book.imageUrl;
+
+    if (hasNewImage) {
+      const oldFilename = book.imageUrl.split('/images/')[1];
+      fs.unlink(`images/${oldFilename}`, (err) => {
+        if (err) console.error("Erreur suppression ancienne image:", err);
       });
+      // supprime l'ancienne image
+
+      const originalImgBuffer = req.file.buffer;
+      const imgFilename = Date.now() + req.file.originalname.split('.')[0] + '.webp';
+      const imgPath = path.join('images', imgFilename);
+
+      await sharp(originalImgBuffer)
+        .resize({ width: 520 })
+        .webp({ quality: 70 })
+        .toFile(imgPath);
+
+      imageUrl = `${req.protocol}://${req.get('host')}/images/${imgFilename}`;
+    }
+    // gère la nouvelle image et met à jour l'URL si besoin
+
+    const newBookObject = {
+      ...newBookData,
+      imageUrl,
+    };
+    delete newBookObject.userId;
+    // met à jour les données, sans modifier l'userId
+
+    await Book.updateOne({ _id: req.params.id }, { ...newBookObject, _id: req.params.id });
+    res.status(200).json({ message: 'Livre modifié !' });
+  } catch (error) {
+    res.status(500).json({ error });
+  }
 };
+
+
+
 
 exports.deleteOneBook = (req, res, next)=> {
   Book.findOne({ _id: req.params.id})
